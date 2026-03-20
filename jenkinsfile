@@ -52,9 +52,9 @@ pipeline {
         stage('Run Container') {
             steps {
                 sh '''
-                    docker stop hotstar || true
-                    docker rm hotstar || true
-                    docker run -d -p 9596:8080 --name hotstar ${DOCKERHUB_IMAGE}:latest
+                docker stop hotstar || true
+                docker rm hotstar || true
+                docker run -d -p 9596:8080 --name hotstar ${DOCKERHUB_USER}/${DOCKERHUB_IMAGE}:${DOCKERHUB_TAG}
                 '''
             }
         }
