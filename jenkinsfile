@@ -49,16 +49,12 @@ pipeline {
             }
         }
 
-        stage('Deploy to Docker Swarm') {
+        stage('Run Container') {
             steps {
                 sh '''
-                echo "🚀 Deploying service to Swarm..."
-                docker service rm myapp-service || true
-                docker service create \
-                    --name myapp-service \
-                    --publish 8082:8080 \
-                    --replicas 2 \
-                    ${DOCKERHUB_USER}/${DOCKERHUB_IMAGE}:${DOCKERHUB_TAG}
+                    docker stop onlinebookstore || true
+                    docker rm onlinebookstore || true
+                    docker run -d -p 9596:8080 --name onlinebookstore ${IMAGE_NAME}:latest
                 '''
             }
         }
