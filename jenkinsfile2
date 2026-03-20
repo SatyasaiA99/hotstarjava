@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKERHUB_USER = 'Docker'
-        DOCKERHUB_IMAGE = 'myapp'
+        DOCKERHUB_IMAGE = 'satyasaia99/hotstar'
         DOCKERHUB_TAG = 'v1'
     }
 
