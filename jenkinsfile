@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/SatyasaiA99/hotstarjava.git'
+                git branch: 'main', url: 'https://github.com/SatyasaiA99/hotstarjava.git'
             }
         }
 
