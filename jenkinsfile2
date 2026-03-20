@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USER = 'abhiram5673'
+        DOCKERHUB_USER = 'Docker'
         DOCKERHUB_IMAGE = 'myapp'
         DOCKERHUB_TAG = 'v1'
     }
@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/abhiram2106/java-project-maven-new.git', branch: 'master'
+                git url: 'https://github.com/SatyasaiA99/hotstarjava.git'
             }
         }
 
