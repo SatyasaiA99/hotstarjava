@@ -21,6 +21,17 @@ pipeline {
                 sh 'mvn clean package -DskipTests'
             }
         }
+    stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                    mvn sonar:sonar \
+                    -Dsonar.projectKey=hotstar \
+                    -Dsonar.projectName=hotstar
+                    '''
+                }
+            }
+        }
 
         stage('Cleanup Old Docker Artifacts') {
             steps {
