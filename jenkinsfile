@@ -5,7 +5,7 @@ pipeline {
         DOCKERHUB_USER = 'satyasaia99'
         DOCKERHUB_IMAGE = 'hotstar'
         DOCKERHUB_TAG = 'v2'
-        SONARQUBE_ENV = 'SonarQube'
+        SONARQUBE_ENV = 'sq'
         NEXUS_REPO = 'maven-releases'
     }
 
@@ -23,22 +23,20 @@ pipeline {
         }
     stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh '''
-                    mvn sonar:sonar \
-                    -Dsonar.projectKey=hotstar \
-                    -Dsonar.projectName=hotstar
-                    '''
+                withSonarQubeEnv("${SONARQUBE_ENV}") {
+                    sh 'mvn sonar:sonar'
                 }
             }
         }
-     stage('Quality Gate') {
-    steps {
-        timeout(time: 5, unit: 'MINUTES') {
-            waitForQualityGate abortPipeline: true
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 1, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
         }
-    }
-}
+
         stage('Cleanup Old Docker Artifacts') {
             steps {
                 sh '''
