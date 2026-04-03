@@ -49,16 +49,7 @@
             </plugin>
         </plugins>
     </build>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>maven1</id>
-            <name>Maven.org</name>
-            <url>https://repo1.maven.org/maven2</url>
-        </pluginRepository>
-    </pluginRepositories>
-</project>
-<distributionManagement>
+    <distributionManagement>
     <repository>
         <id>maven-releases</id>
         <url>http://44.202.118.187:8081:8081/repository/maven-releases/</url>
@@ -69,3 +60,13 @@
         <url>http://44.202.118.187:8081/repository/maven-snapshots/</url>
     </snapshotRepository>
 </distributionManagement>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>maven1</id>
+            <name>Maven.org</name>
+            <url>https://repo1.maven.org/maven2</url>
+        </pluginRepository>
+    </pluginRepositories>
+</project>
+
