@@ -51,7 +51,7 @@ pipeline {
 
         stage('JENKINS TO NEXUS') {
             steps {
-                withMaven(globalMavenSettingsConfig: 'settings.xml', jdk: 'jdk17', maven: 'maven3', traceability: true) {
+                withMaven(globalMavenSettingsConfig: '64516d7d-cd77-4963-a65e-da48f786f6ef', jdk: 'jdk17', maven: 'maven3', traceability: true) {
                     sh 'mvn deploy'
                 }
             }
@@ -76,17 +76,6 @@ pipeline {
             }
         }
 
-        stage('Run Container') {
-            steps {
-                sh '''
-                docker stop hotstar || true
-                docker rm hotstar || true
-                docker run -d -p 9596:8080 --name hotstar ${DOCKERHUB_USER}/${DOCKERHUB_IMAGE}:${DOCKERHUB_TAG}
-                '''
-            }
-        }
-
-        // ✅ FIXED: moved inside stages
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
