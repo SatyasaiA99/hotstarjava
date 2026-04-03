@@ -85,19 +85,22 @@ pipeline {
                 '''
             }
         }
-    }
+
+        // ✅ FIXED: moved inside stages
         stage('Deploy to Kubernetes') {
-    steps {
-        sh '''
-        echo "🚀 Deploying to Kubernetes..."
+            steps {
+                sh '''
+                echo "🚀 Deploying to Kubernetes..."
 
-        kubectl apply -f deployment.yaml
-        kubectl apply -f service.yaml
+                kubectl apply -f deployment.yaml
+                kubectl apply -f service.yaml
 
-        kubectl rollout status deployment/hotstar-deployment
-        '''
+                kubectl rollout status deployment/hotstar-deployment
+                '''
+            }
+        }
     }
-}
+
     post {
         always {
             sh '''
