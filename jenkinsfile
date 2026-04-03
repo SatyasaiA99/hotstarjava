@@ -17,7 +17,7 @@ pipeline {
         IMAGE_TAG = "v1.${BUILD_NUMBER}"
 
         // SonarQube
-        SONARQUBE_ENV = 'SonarQube'
+        SONARQUBE_ENV = 'sonarqube'
 
         // Nexus
         NEXUS_REPO = 'maven-releases'
