@@ -82,8 +82,8 @@ pipeline {
                 sh '''
                 echo "🚀 Deploying to Kubernetes..."
 
-                kubectl apply -f deployment.yaml
-                kubectl apply -f service.yaml
+                kubectl apply -f Deployment.yml
+                kubectl apply -f Service.yml
 
                 kubectl rollout status deployment/hotstar-deployment
                 '''
