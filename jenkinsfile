@@ -10,6 +10,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/SatyasaiA99/hotstarjava.git'
@@ -21,7 +22,8 @@ pipeline {
                 sh 'mvn clean package -DskipTests'
             }
         }
-    stage('SonarQube Analysis') {
+
+        stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
                     sh 'mvn sonar:sonar'
@@ -46,12 +48,15 @@ pipeline {
                 '''
             }
         }
+
         stage('JENKINS TO NEXUS') {
-            withMaven(globalMavenSettingsConfig: 'settings.xml', jdk: 'jdk17', maven: 'maven3', traceability: true) {
-            sh 'mvn deploy'
-}
+            steps {
+                withMaven(globalMavenSettingsConfig: 'settings.xml', jdk: 'jdk17', maven: 'maven3', traceability: true) {
+                    sh 'mvn deploy'
+                }
             }
-        }     
+        }
+
         stage('Build Docker Image') {
             steps {
                 sh "docker build -t ${DOCKERHUB_USER}/${DOCKERHUB_IMAGE}:${DOCKERHUB_TAG} ."
@@ -89,6 +94,5 @@ pipeline {
             docker system prune -af || true
             '''
         }
+    }
 }
-}
-
