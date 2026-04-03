@@ -1,72 +1,142 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven'
+        jdk 'JDK17'
+    }
+
     environment {
-        DOCKERHUB_USER = 'satyasaia99'
-        DOCKERHUB_IMAGE = 'hotstar'
-        DOCKERHUB_TAG = 'v1'
+        // Git
+        GIT_REPO = 'https://github.com/SatyasaiA99/hotstarjava.git'
+        GIT_BRANCH = 'main'
+
+        // Docker
+        DOCKERHUB_CREDENTIALS = 'Docker'
+        DOCKER_IMAGE = 'satyasaia99/hotstar'
+        IMAGE_TAG = "v1.${BUILD_NUMBER}"
+
+        // SonarQube
+        SONARQUBE_ENV = 'SonarQube'
+
+        // Nexus
+        NEXUS_REPO = 'maven-releases'
+
+        // Kubernetes
+        KUBE_CONFIG = 'kubeconfig'   // Jenkins credential ID
     }
 
     stages {
-        stage('Checkout') {
+
+        stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/SatyasaiA99/hotstarjava.git'
+                git branch: "${GIT_BRANCH}", url: "${GIT_REPO}"
             }
         }
 
-        stage('Build with Maven') {
+        stage('Build & Unit Test') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                sh 'mvn clean verify'
             }
         }
 
-        stage('Cleanup Old Docker Artifacts') {
+        stage('SonarQube Analysis') {
             steps {
-                sh '''
-                echo "🧹 Cleaning up old containers and images..."
-                docker rm -f $(docker ps -aq --filter "name=myapp-cont") || true
-                docker rmi -f ${DOCKERHUB_USER}/${DOCKERHUB_IMAGE}:${DOCKERHUB_TAG} || true
-                '''
+                withSonarQubeEnv("${SONARQUBE_ENV}") {
+                    sh 'mvn sonar:sonar'
+                }
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Quality Gate') {
             steps {
-                sh "docker build -t ${DOCKERHUB_USER}/${DOCKERHUB_IMAGE}:${DOCKERHUB_TAG} ."
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
 
-        stage('Push to DockerHub') {
+        stage('Package Artifact') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'Docker',
-                                                 usernameVariable: 'DOCKER_USER',
-                                                 passwordVariable: 'DOCKER_PASS')]) {
+                sh 'mvn package -DskipTests'
+            }
+        }
+
+        stage('Upload Artifact to Nexus') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'nexus-creds',
+                    usernameVariable: 'NEXUS_USER',
+                    passwordVariable: 'NEXUS_PASS')]) {
+
                     sh '''
-                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                    docker push ${DOCKERHUB_USER}/${DOCKERHUB_IMAGE}:${DOCKERHUB_TAG}
+                    mvn deploy -Dnexus.username=$NEXUS_USER -Dnexus.password=$NEXUS_PASS
                     '''
                 }
             }
         }
 
-        stage('Run Container') {
+        stage('Build Docker Image') {
             steps {
                 sh '''
-                docker stop hotstar || true
-                docker rm hotstar || true
-                docker run -d -p 9596:8080 --name hotstar ${DOCKERHUB_USER}/${DOCKERHUB_IMAGE}:${DOCKERHUB_TAG}
+                docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} .
+                docker tag ${DOCKER_IMAGE}:${IMAGE_TAG} ${DOCKER_IMAGE}:latest
                 '''
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS}",
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS')]) {
+
+                    sh '''
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    docker push ${DOCKER_IMAGE}:${IMAGE_TAG}
+                    docker push ${DOCKER_IMAGE}:latest
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                withCredentials([file(credentialsId: "${KUBE_CONFIG}", variable: 'KUBECONFIG')]) {
+                    sh '''
+                    export KUBECONFIG=$KUBECONFIG
+
+                    sed -i "s|IMAGE_TAG|${IMAGE_TAG}|g" k8s/deployment.yaml
+
+                    kubectl apply -f k8s/deployment.yaml
+                    kubectl apply -f k8s/service.yaml
+                    '''
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                withCredentials([file(credentialsId: "${KUBE_CONFIG}", variable: 'KUBECONFIG')]) {
+                    sh '''
+                    export KUBECONFIG=$KUBECONFIG
+
+                    kubectl rollout status deployment/hotstar-deployment
+                    kubectl get pods
+                    '''
+                }
             }
         }
     }
 
     post {
-        always {
-            sh '''
-            echo "🧹 Final cleanup..."
-            docker system prune -af || true
-            '''
+        success {
+            echo "✅ Pipeline completed successfully!"
         }
+        failure {
+            echo "❌ Pipeline failed!"
+        }
+        always {
+            sh 'docker system prune -af || true'
+        }
+    }
 }
-}
-
