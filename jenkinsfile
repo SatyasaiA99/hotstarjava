@@ -17,7 +17,7 @@ pipeline {
         IMAGE_TAG = "v1.${BUILD_NUMBER}"
 
         // SonarQube
-        SONARQUBE_ENV = 'sonarqube'
+        SONARQUBE_ENV = 'SonarQube'
 
         // Nexus
         NEXUS_REPO = 'maven-releases'
@@ -43,7 +43,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
-                    sh 'mvn sonar:sonarqube'
+                    sh 'mvn sonar:sonar'
                 }
             }
         }
