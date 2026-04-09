@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: hotstar-container
-        image: satyasaia99/hotstar:v2
+        image: satyasaia99/hotstar:v3
         ports:
         - containerPort: 8080
