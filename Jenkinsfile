@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKERHUB_USER = 'satyasaia99'
         DOCKERHUB_IMAGE = 'hotstar'
-        DOCKERHUB_TAG = 'v2'
+        DOCKERHUB_TAG = 'v3'
         SONARQUBE_ENV = 'sq'
         NEXUS_REPO = 'maven-releases'
     }
